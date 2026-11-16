@@ -62,3 +62,14 @@ jobs:
 
       - name: Push Docker image
         run: docker push ghcr.io/johnnyalhelou/aiagentinventory-ci-cd:latest
+
+  verify-runner:
+    name: Verify Mac Deployment Runner
+    needs: build
+    runs-on: [self-hosted, macOS, ARM64, inventory-deploy]
+
+    steps:
+      - name: Verify Docker on MacBook
+        run: |
+          docker --version
+          docker info
