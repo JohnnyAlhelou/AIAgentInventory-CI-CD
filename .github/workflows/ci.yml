@@ -35,3 +35,15 @@ jobs:
 
       - name: Run automated tests
         run: python manage.py test
+
+  build:
+    name: Build Docker Image
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build --platform linux/amd64 -t inventory-agent:ci .
