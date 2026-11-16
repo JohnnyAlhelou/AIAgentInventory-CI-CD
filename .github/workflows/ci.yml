@@ -73,3 +73,43 @@ jobs:
         run: |
           docker --version
           docker info
+
+  deploy:
+    name: Deploy AI Inventory Agent
+    needs: verify-runner
+    runs-on: [self-hosted, macOS, ARM64, inventory-deploy]
+
+    permissions:
+      contents: read
+      packages: read
+
+    steps:
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull latest Docker image
+        run: docker pull --platform linux/amd64 ghcr.io/johnnyalhelou/aiagentinventory-ci-cd:latest
+
+      - name: Deploy Docker container
+        run: |
+          docker rm -f inventory-agent-deployed 2>/dev/null || true
+
+          docker run -d \
+            --platform linux/amd64 \
+            --name inventory-agent-deployed \
+            --restart unless-stopped \
+            -p 127.0.0.1:8001:8000 \
+            --env-file "$HOME/.config/inventory-agent/.env" \
+            -e SQLITE_PATH=/app/data/db.sqlite3 \
+            -v inventory-agent-data:/app/data \
+            ghcr.io/johnnyalhelou/aiagentinventory-ci-cd:latest
+
+      - name: Verify deployment
+        run: |
+          curl --fail --silent --show-error \
+            --retry 10 --retry-delay 2 --retry-connrefused \
+            http://127.0.0.1:8001/
