@@ -29,8 +29,6 @@ Rules:
 
 MAX_STEPS = 5
 
-client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
-
 
 def run_agent(user_message, previous_interaction_id=None, verbose=False):
     """Send a message to the agent and run tools until it produces an answer."""
@@ -81,6 +79,7 @@ def run_agent(user_message, previous_interaction_id=None, verbose=False):
             f"Final cost is ${total:.2f}.",
             previous_interaction_id,
         )  
+    client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
     interaction = client.interactions.create(
         model=MODEL,
         input=user_message,
